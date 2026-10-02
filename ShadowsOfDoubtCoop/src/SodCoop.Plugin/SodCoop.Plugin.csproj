@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Builds against the DLLs BepInEx generates in your own game folder, so nothing from the game is
+    redistributed. Run the game once with BepInEx installed first, then build with:
+      dotnet build -c Release -p:GameDir="C:\Program Files (x86)\Steam\steamapps\common\Shadows of Doubt"
+    or set GameDir in a Directory.Build.props / environment variable.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <AssemblyName>SodCoop</AssemblyName>
+    <RootNamespace>SodCoop</RootNamespace>
+    <Version>0.1.0</Version>
+    <GameDir Condition="'$(GameDir)' == ''">C:\Program Files (x86)\Steam\steamapps\common\Shadows of Doubt</GameDir>
+    <PluginOutDir>$(GameDir)\BepInEx\plugins\SodCoop</PluginOutDir>
+    <!-- Copy straight into the game after a build; pass -p:DeployToGame=false to skip. -->
+    <DeployToGame Condition="'$(DeployToGame)' == ''">true</DeployToGame>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SodCoop.Net\SodCoop.Net.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="$(GameDir)\BepInEx\core\BepInEx.Core.dll" Private="false" />
+    <Reference Include="$(GameDir)\BepInEx\core\BepInEx.Unity.IL2CPP.dll" Private="false" />
+    <Reference Include="$(GameDir)\BepInEx\core\Il2CppInterop.Runtime.dll" Private="false" />
+    <Reference Include="$(GameDir)\BepInEx\interop\Il2Cppmscorlib.dll" Private="false" />
+    <Reference Include="$(GameDir)\BepInEx\interop\UnityEngine.dll" Private="false" />
+    <Reference Include="$(GameDir)\BepInEx\interop\UnityEngine.CoreModule.dll" Private="false" />
+    <Reference Include="$(GameDir)\BepInEx\interop\UnityEngine.IMGUIModule.dll" Private="false" />
+    <Reference Include="$(GameDir)\BepInEx\interop\UnityEngine.InputLegacyModule.dll" Private="false" />
+    <Reference Include="$(GameDir)\BepInEx\interop\UnityEngine.PhysicsModule.dll" Private="false" />
+  </ItemGroup>
+
+  <Target Name="DeployPlugin" AfterTargets="Build" Condition="'$(DeployToGame)' == 'true' And Exists('$(GameDir)\BepInEx')">
+    <MakeDir Directories="$(PluginOutDir)" />
+    <Copy SourceFiles="$(TargetDir)SodCoop.dll;$(TargetDir)SodCoop.Net.dll" DestinationFolder="$(PluginOutDir)" />
+    <Message Importance="high" Text="Copied SodCoop to $(PluginOutDir)" />
+  </Target>
+</Project>
